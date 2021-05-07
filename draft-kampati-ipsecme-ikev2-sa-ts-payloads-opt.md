@@ -1,7 +1,7 @@
 ---
 title: IKEv2 Optional SA&TS Payloads in Child Exchange
 abbrev: IKEv2 Optional Child SA&TS Payloads
-docname: draft-kampati-ipsecme-ikev2-sa-ts-payloads-opt-03
+docname: draft-kampati-ipsecme-ikev2-sa-ts-payloads-opt-04
 category: std
 
 ipr: trust200902
@@ -26,16 +26,6 @@ author:
   city: Bangalore
   region: Karnataka
   country: India
-- ins: M. Bharath
-  name: Meduri S S Bharath
-  org: Huawei Technologies
-  abbrev: Huawei
-  email: MeduriS.Bharath@huawei.com
-  street: Divyashree Techno Park, Whitefield
-  code: '560066'
-  city: Bangalore
-  region: Karnataka
-  country: India
 - ins: W. Pan
   name: Wei Pan
   org: Huawei Technologies
@@ -46,6 +36,26 @@ author:
   city: Nanjing
   region: Jiangsu
   country: China
+- ins: M. Bharath
+  name: Meduri S S Bharath
+  org: Mavenir Systems Pvt Ltd
+  abbrev: Mavenir
+  email: bharath.meduri@mavenir.com
+  street: Manyata Tech Park
+  code: ""
+  city: Bangalore
+  region: Karnataka
+  country: India
+- ins: M. Chen
+  name: Meiling Chen
+  org: China Mobile
+  abbrev: CMCC
+  email: chenmeiling@chinamobile.com
+  street: 32 Xuanwumen West Street, West District
+  code: "100053"
+  city: Beijing
+  region: Beijing
+  Country: China
 
 normative:
   RFC2119:
@@ -124,14 +134,15 @@ parts.
 Before using this new optimization, the IPSec implementation who
 supports it has to know that the peer also supports it. Without the
 support on both sides, the optimized rekeying messages sent by one
-peer may be unrecognizable for the other peer. To stop this failure
+peer may be unrecognizable for the other peer. To prevent this failure
 from happening, the first step is to negotiate the support of this
 optimization between the two peers. There are two specific rekeying
 SAs cases: rekeying IKE SAs and rekeying Child SAs. After the
-negotiation, it’s up to the initiator to decide at which case to
-optimize the rekeying messages. The initiator can optimize the
-rekeying message payloads in both cases, or just in one case. The
-responder can react based on the received rekeying message.
+negotiation, the initiator can optimize the rekeying message payloads
+in both cases. In other words, once the negotiation of support for
+optimizing payloads at rekeying IKE SAs and Child SAs is complete,
+both IKE SAs and Child SAs rekeying are supported by the two sides.
+The responder can react based on the received rekeying message.
 
 ## Negotiation of Support for Optimizing Optional Payload at Rekeying IKE SAs and Child SAs {#negotiation}
 
@@ -189,6 +200,8 @@ then it includes the SA_UNCHANGED notification in its CREATE_CHILD_SA
 exchange message. If the initiator decides not to do the
 optimization, then it just sends the rekeying request message as the
 original way, the rekeying is conducted as {{!RFC7296}} defined.
+If the initiator and responder decides to do the optimization,
+then the IKE SA rekeying uses PFS by default.
 
 ### Rekeying IKE SAs When No Change of Initiator and Responder's Cryptographic Suites {#ikerekeynochange}
 
@@ -224,6 +237,8 @@ The initiator sends a SA_UNCHANGED notification payload, a Nonce
 payload and a Diffie-Hellman value in the KEi payload. A new
 initiator SPI is supplied in the SPI field of the SA_UNCHANGED
 notification payload.
+These messages also follow the original PFS with the signature
+and encryption algorithms used as last message.
 
 The responder replies (using the same Message ID to respond) with a
 SA_UNCHANGED notification payload, a Nonce payload and a Diffie-Hellman
@@ -439,7 +454,9 @@ suites in initiator or responder. It is formatted as follows:
 The SA_TS_UNCHANGED notification is used to replace the SA payloads
 and TS payloads at the time of rekeying Child SAs when there is no
 change of cryptographic suites and ACL configuration in initiator or
-responder. It is formatted as follows:
+responder. The SPI of the new Child SA is included in this payload,
+and the SPI of the old Child SA is in the REKEY_SA notification payload.
+The SA_TS_UNCHANGED notification is formatted as follows:
 
 ~~~~
  0                 1                   2                   3
