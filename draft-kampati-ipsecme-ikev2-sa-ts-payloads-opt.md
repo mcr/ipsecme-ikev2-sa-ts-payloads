@@ -1,7 +1,7 @@
 ---
 title: IKEv2 Optional SA&TS Payloads in Child Exchange
 abbrev: IKEv2 Optional Child SA&TS Payloads
-docname: draft-kampati-ipsecme-ikev2-sa-ts-payloads-opt-04
+docname: draft-kampati-ipsecme-ikev2-sa-ts-payloads-opt-05
 category: std
 
 ipr: trust200902
@@ -55,10 +55,12 @@ author:
   code: "100053"
   city: Beijing
   region: Beijing
-  Country: China
+  country: China
 
 normative:
   RFC2119:
+  RFC8174:
+  RFC7296:
 
 informative:
 
@@ -78,7 +80,7 @@ fragmentation of IKEv2 messages.
 # Introduction
 
 The Internet Key Exchange protocol version 2 (IKEv2) specified in
-[RFC7296] is used in the IP Security (IPsec) architecture for the
+[RFC7296] is used in the IP Security (IPSec) architecture for the
 purposes of Security Association (SA) parameters negotiation and
 authenticated key exchange. The protocol uses UDP as the transport
 for its messages, which size varies from less than one hundred bytes
@@ -99,8 +101,7 @@ these devices, these problems can be solved by introducing the
 solution described in this document.
 
 This is also useful in Internet of Things (IoT) devices which
-utilizing lower power consumption technology. The appendix A of
-{{?I-D.mglt-6lo-diet-esp-requirements}} gives some estimate data. For
+utilizing lower power consumption technology. For
 these devices, reducing the length of IKE/Child SA rekeying messages
 can save the bandwidth consumption. At the same time, it can also
 save the computing processes by less payload are included.
@@ -144,9 +145,9 @@ optimizing payloads at rekeying IKE SAs and Child SAs is complete,
 both IKE SAs and Child SAs rekeying are supported by the two sides.
 The responder can react based on the received rekeying message.
 
-## Negotiation of Support for Optimizing Optional Payload at Rekeying IKE SAs and Child SAs {#negotiation}
+## Negotiation of Support for Optimizing Payloads at Rekeying IKE SAs and Child SAs {#negotiation}
 
-The initiator indicates its support for optimizing optional payloads
+The initiator indicates its support for optimizing payloads
 at rekeying IKE SAs and Child SAs by including a Notify payload of
 type MINIMAL_REKEY_SUPPORTED in the IKE_AUTH request message. By
 observing the MINIMAL_REKEY_SUPPORTED notification in the received
@@ -194,31 +195,22 @@ HDR, SK {IDi, [CERT,] [CERTREQ,]
 
 The payload optimization at rekeying IKE SAs MUST NOT be used unless
 both peers have indicated their support of this extension by using
-the negotiation method described in {{negotiation}}. If the initiator
-decides to optimize the payloads at the time of rekeying IKE SAs,
-then it includes the SA_UNCHANGED notification in its CREATE_CHILD_SA
-exchange message. If the initiator decides not to do the
-optimization, then it just sends the rekeying request message as the
-original way, the rekeying is conducted as {{!RFC7296}} defined.
-If the initiator and responder decides to do the optimization,
-then the IKE SA rekeying uses PFS by default.
-
-### Rekeying IKE SAs When No Change of Initiator and Responder's Cryptographic Suites {#ikerekeynochange}
+the negotiation method described in {{negotiation}}.
 
 At the time of rekeying an IKE SA, when the initiator determines
 there is no change on its cryptographic suites since this IKE SA was
-created or last rekeyed, it MAY send the SA_UNCHANGED notification
+created or last rekeyed, it MUST send the REKEY_OPTIMIZED notification
 payload instead of the SA payloads in the rekeying request message.
-In this SA_UNCHANGED notification, it contains the initiator’s new
+In this REKEY_OPTIMIZED notification, it contains the initiator’s new
 Security Parameter Index (SPI) used for creating the new IKE SA.
 
 After receiving the initiator’s rekeying request message with the
-SA_UNCHANGED notification and no SA payloads, the responder knows
+REKEY_OPTIMIZED notification and no SA payloads, the responder knows
 that the initiator wants to optimize the rekeying payload. Then when
 it determines that there is also no change in its cryptographic
-suites, the responder MAY send the rekeying respond message to the
-initiator with the SA_UNCHANGED notification payload instead of the
-SA payloads. In this SA_UNCHANGED notification, it contains the
+suites, the responder MUST send the rekeying respond message to the
+initiator with the REKEY_OPTIMIZED notification payload instead of the
+SA payloads. In this REKEY_OPTIMIZED notification, it contains the
 responder’s new SPI used for creating the new IKE SA.
 
 According to the initiator’s new SPI and the responder’s new SPI, the
@@ -229,115 +221,55 @@ The CREATE_CHILD_SA message exchange in this case is shown below:
 ~~~~
 Initiator                         Responder
 --------------------------------------------------------------------
-HDR, SK {N(SA_UNCHANGED), Ni, KEi} -->
-                              <-- HDR, SK {N(SA_UNCHANGED), Nr, KEr}
+HDR, SK {N(REKEY_OPTIMIZED),
+    Ni, KEi} -->
+                              <-- HDR, SK {N(REKEY_OPTIMIZED),
+                                      Nr, KEr}
 ~~~~
 
-The initiator sends a SA_UNCHANGED notification payload, a Nonce
+The initiator sends a REKEY_OPTIMIZED notification payload, a Nonce
 payload and a Diffie-Hellman value in the KEi payload. A new
-initiator SPI is supplied in the SPI field of the SA_UNCHANGED
+initiator SPI is supplied in the SPI field of the REKEY_OPTIMIZED
 notification payload.
-These messages also follow the original PFS with the signature
-and encryption algorithms used as last message.
+These messages also follow the original Perfect Forwarding Secrecy (PFS)
+with the signature and encryption algorithms used as last message.
 
 The responder replies (using the same Message ID to respond) with a
-SA_UNCHANGED notification payload, a Nonce payload and a Diffie-Hellman
+REKEY_OPTIMIZED notification payload, a Nonce payload and a Diffie-Hellman
 value in the KEr payload. A new responder SPI is supplied in
-the SPI field of the SA_UNCHANGED notification payload.
+the SPI field of the REKEY_OPTIMIZED notification payload.
 
-This SA_UNCHANGED notification MUST be included in a CREATE_CHILD_SA
+This REKEY_OPTIMIZED notification MUST be included in a CREATE_CHILD_SA
 exchange message when there is no SA payloads included. When the
-SA_UNCHANGED notification payload is included, the SA payload MUST
+REKEY_OPTIMIZED notification payload is included, the SA payload MUST
 NOT be included.
-
-### Rekeying IKE SAs When Responder's Cryptographic Suites Changed
-
-At the time of or before rekeying IKE SAs, the responder’s
-cryptographic suites may be changed while there is no change of
-initiator’s cryptographic suites. New cryptographic suites may be
-added to the responder, or some outdated cryptographic suites may be
-deleted from the responder. In this situation, the initiator MAY
-send the SA_UNCHANGED notification payload instead of the SA payloads
-in the CREATE_CHILD_SA request message at the time of rekeying IKE
-SAs.
-
-If the responder decides to continue using the previously negotiated
-cryptographic suite to rekey the IKE SA, it MAY send the SA_UNCHANGED
-notification payload in the CREATE_CHILD_SA response message, then
-the rekeying is conducted like the way described in {{ikerekeynochange}}.
-
-If the responder decides to re-negotiate the cryptographic suite, it
-MUST send NO_PROPOSAL_CHOSEN notification payload in the
-CREATE_CHILD_SA response message. After receiving this error
-notification, the initiator MUST retry the CREATE_CHILD_SA exchange
-with the SA payloads. Then the rekeying is conducted in the original
-way defined in {{!RFC7296}}. The CREATE_CHILD_SA message exchange in
-this case is shown below:
-
-~~~~
-Initiator                         Responder
---------------------------------------------------------------------
-HDR, SK {N(SA_UNCHANGED), Ni, KEi} -->
-                              <-- HDR, SK {N(NO_PROPOSAL_CHOSEN),
-                                      Nr, KEr}
-HDR, SK {SA, Ni, KEi} -->
-                              <-- HDR, SK {SA, Ni, KEi}
-~~~~
-
-Besides, if the responder only supports the Child SA rekeying
-optimization and doesn’t support the IKE SA rekeying optimization, it
-can also follow the way described above, i.e., it MUST send
-NO_PROPOSAL_CHOSEN notification payload in the CREATE_CHILD_SA
-response message when receiving the SA_UNCHANGED notification at the
-time of rekeying IKE SAs.
 
 ## Payload Optimization at Rekeying Child SAs
 
 The payload optimization at rekeying Child SAs MUST NOT be used
 unless both peers have indicated their support of this extension by
-using the negotiation method described in {{negotiation}}. If the
-initiator decides to optimize the payloads at the time of rekeying
-Child SAs, then it includes the SA_TS_UNCHANGED notification in its
-CREATE_CHILD_SA exchange message. If the initiator decides not to do
-the optimization, then it just sends the rekeying request message as
-the original way, the rekeying is conducted as {{!RFC7296}} defined.
-
-This SA_TS_UNCHANGED notification MUST be included in a
-CREATE_CHILD_SA exchange message when there is no SA and TS payloads
-included. The new Child SA is created with the SPI value in the
-SA_TS_UNCHANGED notification.
-
-### Rekeying Child SAs When No Change of Initiator and Responder's Cryptographic Suites and ACL Configuration {#childrekeynochange}
-
-At the time of rekeying Child SAs, the initiator MAY send the
-SA_TS_UNCHANGED notification payload instead of the SA and TS
-payloads when there is no change in its cryptographic suites and ACL
-configuration since last negotiation. After receiving the
-initiator’s request message with the SA_TS_UNCHANGED notification,
-the responder MAY respond to the initiator with the SA_TS_UNCHANGED
-notification payload instead of the SA and TS payloads if there is
-also no change in its cryptographic suites and ACL configuration
-since last negotiation.
+using the negotiation method described in {{negotiation}}.
 
 At the time of rekeying a Child SA, when the initiator determines
 there is no change in its cryptographic suites and ACL configuration
-since this Child SA was created or last rekeyed, it MAY send the
-SA_TS_UNCHANGED notification payload instead of the SA and TS
-payloads in the rekeying request message. In this SA_TS_UNCHANGED
+since this Child SA was created or last rekeyed, it MUST send the
+REKEY_OPTIMIZED notification payload instead of the SA and TS
+payloads in the rekeying request message. In this REKEY_OPTIMIZED
 notification, it contains the initiator’s new Security Parameter
 Index (SPI) used for creating the new Child SA.
 
 After receiving the initiator’s rekeying request message with the
-SA_TS_UNCHANGED notification and no SA and TS payloads, the responder
+REKEY_OPTIMIZED notification and no SA and TS payloads, the responder
 knows that the initiator wants to optimize the rekeying payload.
 Then when it determines that there is also no change in its
-cryptographic suites and ACL configuration, the responder MAY send
+cryptographic suites and ACL configuration, the responder MUST send
 the rekeying respond message to the initiator with the
-SA_TS_UNCHANGED notification payload instead of the SA and TS
-payloads. In this SA_TS_UNCHANGED notification, it contains the
+REKEY_OPTIMIZED notification payload instead of the SA and TS
+payloads. In this REKEY_OPTIMIZED notification, it contains the
 responder’s new SPI used for creating the new Child SA.
 
-According to the initiator’s new SPI and the responder’s new SPI, the
+According to the old SPIs included in the REKEY_SA payloads and
+the new SPIs included in the REKEY_OPTIMIZED payloads, the
 initiator and the responder can rekey the Child SA on both sides.
 
 The CREATE_CHILD_SA message exchange in this case is shown below:
@@ -345,67 +277,24 @@ The CREATE_CHILD_SA message exchange in this case is shown below:
 ~~~~
 Initiator                         Responder
 --------------------------------------------------------------------
-HDR, SK {N(REKEY_SA), N(SA_TS_UNCHANGED),
+HDR, SK {N(REKEY_SA), N(REKEY_OPTIMIZED),
     Ni, [KEi,]} -->
-                              <-- HDR, SK {N(SA_TS_UNCHANGED),
+                              <-- HDR, SK {N(REKEY_OPTIMIZED),
                                       Nr, [KEr,]}
 ~~~~
 
-This SA_TS_UNCHANGED notification MUST be included in a
+This REKEY_OPTIMIZED notification MUST be included in a
 CREATE_CHILD_SA exchange message when there is no SA and TS payloads
-included at the time of rekeying Child SAs. When the SA_TS_UNCHANGED
+included at the time of rekeying Child SAs. When the REKEY_OPTIMIZED
 notification payload is included, the SA and TS payloads MUST NOT be
 included.
-
-### Rekeying Child SAs When Responder's Cryptographic Suites or ACL Configuration Changed
-
-At the time of or before rekeying Child SAs, the responder’s
-cryptographic suites or ACL configuration may be changed while there
-is no change of initiator’s cryptographic suites and ACL
-configuration. In this situation, the initiator MAY send the
-SA_TS_UNCHANGED notification payload instead of the SA and TS
-payloads in the CREATE_CHILD_SA request message at the time of
-rekeying Child SAs.
-
-If the responder decides to continue using the previously negotiated
-cryptographic suite and Traffic Selectors to rekey the Child SA, it
-MAY send the SA_TS_UNCHANGED notification payload in the
-CREATE_CHILD_SA response message, then the rekeying is conducted like
-{{childrekeynochange}}.
-
-If the responder decides to re-negotiate the cryptographic suite or
-Traffic Selectors, it MUST send NO_PROPOSAL_CHOSEN notification
-payload in the CREATE_CHILD_SA response message. After receiving
-this error notification, the initiator MUST retry the CREATE_CHILD_SA
-exchange with the SA and TS payloads. Then the rekeying is conducted
-in the original way defined in {{!RFC7296}}. The CREATE_CHILD_SA
-message exchange in this case is shown below:
-
-~~~~
-Initiator                         Responder
---------------------------------------------------------------------
-HDR, SK {N(SA_TS_UNCHANGED), Ni, KEi} -->
-                              <-- HDR, SK {N(NO_PROPOSAL_CHOSEN),
-                                      Nr, KEr}
-HDR, SK {N(REKEY_SA), SA, Ni, [KEi,]
-    TSi, TSr}   -->
-                             <--  HDR, SK {SA, Nr, [KEr,]
-                                      TSi, TSr}
-~~~~
-
-Besides, if the responder only supports the IKE SA rekeying
-optimization and doesn’t support the Child SA rekeying optimization,
-it can also follow the way described above, i.e., it MUST send
-NO_PROPOSAL_CHOSEN notification payload in the CREATE_CHILD_SA
-response message when receiving the SA_TS_UNCHANGED notification at
-the time of rekeying Child SAs.
 
 # Payload Formats
 
 ## MINIMAL_REKEY_SUPPORTED Notification
 
 The MINIMAL_REKEY_SUPPORTED notification is used by the initiator and
-responder to inform their ability of optimizing optional payload at
+responder to inform their ability of optimizing payloads at
 the time of rekeying IKE SAs and Child SAs to the peers. It is
 formatted as follows:
 
@@ -425,11 +314,14 @@ formatted as follows:
 
 This notification contains no data.
 
-## SA_UNCHANGED Notification
+## REKEY_OPTIMIZED Notification
 
-The SA_UNCHANGED notification is used to replace the SA payloads at
+The REKEY_OPTIMIZED notification is used to replace the SA payloads at
 the time of rekeying IKE SAs when there is no change of cryptographic
-suites in initiator or responder. It is formatted as follows:
+suites in initiator and responder, and to replace the SA payloads and
+TS payloads at the time of rekeying Child SAs when there is no change
+of cryptographic suites and ACL configuration in initiator and responder.
+It is formatted as follows:
 
 ~~~~
  0                 1                   2                   3
@@ -445,35 +337,9 @@ suites in initiator or responder. It is formatted as follows:
 ~~~~
 
 * Protocol ID (1 octet) - MUST be 1.
-* SPI Size (1 octet) - MUST be 8.
-* Notify Message Type (2 octets) - MUST be \<Need to get value from IANA\>, the value assigned for the SA_UNCHANGED notification.
-* SPI (8 octets) - Security Parameter Index. The initiator sends initiator SPI. The responder sends responder SPI.
-
-## SA_TS_UNCHANGED Notification
-
-The SA_TS_UNCHANGED notification is used to replace the SA payloads
-and TS payloads at the time of rekeying Child SAs when there is no
-change of cryptographic suites and ACL configuration in initiator or
-responder. The SPI of the new Child SA is included in this payload,
-and the SPI of the old Child SA is in the REKEY_SA notification payload.
-The SA_TS_UNCHANGED notification is formatted as follows:
-
-~~~~
- 0                 1                   2                   3
- 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-| Next Payload  |C|  RESERVED   |         Payload Length        |
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|Protocol ID    | SPI Size (=4) |      Notify Message Type      |
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|                Security Parameter Index (SPI)                 |
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-~~~~
-
-* Protocol ID (1 octet) - MUST be either (2) to indicate AH or (3) to indicate ESP.
-* SPI Size (1 octet) - MUST be 4.
-* Notify Message Type (2 octets) - MUST be \<Need to get value from IANA\>, the value assigned for the SA_TS_UNCHANGED notification.
-* SPI (4 octets) - Security Parameter Index. The initiator sends initiator SPI. The responder sends responder SPI.
+* SPI Size (1 octet) - MUST be 8 when used at the time of rekeying IKE SAs and be 4 when used at the time of rekeying Child SAs.
+* Notify Message Type (2 octets) - MUST be \<Need to get value from IANA\>, the value assigned for the REKEY_OPTIMIZED notification.
+* SPI (4 octets or 8 octets) - Security Parameter Index. The initiator sends initiator SPI. The responder sends responder SPI.
 
 # IANA Considerations
 
@@ -485,12 +351,18 @@ assign codepoints in this registry.
 NOTIFY messages: status types            Value
 ----------------------------------------------------------
 MINIMAL_REKEY_SUPPORTED                  TBD
-SA_UNCHANGED                             TBD
-SA_TS_UNCHANGED                          TBD
+REKEY_OPTIMIZED                          TBD
 ~~~~
 
 # Security Considerations
 
-TBD
+When using the payload optimization defined in this document, the rekeying of IKE SAs and Child SAs are using the same cryptographic suites.
+If changes to the configurations are wanted, such as supporting a new cryptographic algorithm, the rekeying won't apply these changes.
+The initiator or responder should start a new IKE SA or Child SA to apply the new changes.
+
+# Acknowledgments
+
+Special thanks go to Paul Wouters, Valery Smyslov, and Antony Antony.
 
 --- back
+
