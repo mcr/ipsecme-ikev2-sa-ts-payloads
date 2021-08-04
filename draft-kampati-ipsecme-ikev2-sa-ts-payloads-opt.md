@@ -1,7 +1,7 @@
 ---
 title: IKEv2 Optional SA&TS Payloads in Child Exchange
 abbrev: IKEv2 Optional Child SA&TS Payloads
-docname: draft-kampati-ipsecme-ikev2-sa-ts-payloads-opt-06
+docname: draft-kampati-ipsecme-ikev2-sa-ts-payloads-opt-07
 category: std
 
 ipr: trust200902
@@ -36,6 +36,11 @@ author:
   city: Nanjing
   region: Jiangsu
   country: China
+- ins: P. Wouters
+  name: Paul Wouters
+  org: Aiven
+  abbrev: Aiven
+  email: paul.wouters@aiven.io
 - ins: M. Bharath
   name: Meduri S S Bharath
   org: Mavenir Systems Pvt Ltd
