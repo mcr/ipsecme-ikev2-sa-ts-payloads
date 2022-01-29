@@ -164,14 +164,14 @@ either regular or optimized rekey requests.
 The IKE_AUTH message exchange in this case is shown below:
 
 ~~~~
-Initiator                      Responder
+Initiator                       Responder
 --------------------------------------------------------------------
 HDR, SK {IDi, [CERT,] [CERTREQ,]
     [IDr,] AUTH, SAi2, TSi, TSr,
     N(OPTIMIZED_REKEY_SUPPORTED)} -->
-                           <-- HDR, SK {IDr, [CERT,] AUTH,
-                                   SAr2, TSi, TSr,
-                                   N(OPTIMIZED_REKEY_SUPPORTED)}
+                            <-- HDR, SK {IDr, [CERT,] AUTH,
+                                    SAr2, TSi, TSr,
+                                    N(OPTIMIZED_REKEY_SUPPORTED)}
 ~~~~
 
 If the responder does not support this extension, as per regular
@@ -201,12 +201,12 @@ both parties can perform the IKE SA rekey operation.
 The CREATE_CHILD_SA message exchange in this case is shown below:
 
 ~~~~
-Initiator                      Responder
+Initiator                       Responder
 --------------------------------------------------------------------
-HDR, SK {N(OPTIMIZED_REKEY, newSPIi),
+HDR, SK {N(OPTIMIZED_REKEY,newSPIi),
          Ni, KEi} -->
-                           <-- HDR, SK {N(OPTIMIZED_REKEY, newSPIr),
-                                        Nr, KEr}
+                            <-- HDR, SK {N(OPTIMIZED_REKEY,newSPIr),
+                                         Nr, KEr}
 ~~~~
 
 # Optimized Rekey of Child SAs
@@ -234,12 +234,12 @@ both parties can perform the Child SA rekey operation.
 The CREATE_CHILD_SA message exchange in this case is shown below:
 
 ~~~~
-Initiator                      Responder
+Initiator                       Responder
 --------------------------------------------------------------------
-HDR, SK {N(REKEY_SA, oldSPI), N(OPTIMIZED_REKEY, newSPIi),
+HDR, SK {N(REKEY_SA,oldSPI), N(OPTIMIZED_REKEY,newSPIi),
          Ni, [KEi,]} -->
-                           <-- HDR, SK {N(OPTIMIZED_REKEY, newSPIr),
-                                        Nr, [KEr,]}
+                            <-- HDR, SK {N(OPTIMIZED_REKEY,newSPIr),
+                                         Nr, [KEr,]}
 ~~~~
 
 # Payload Formats
