@@ -1,7 +1,7 @@
 ---
 title: IKEv2 Optional SA&TS Payloads in Child Exchange
 abbrev: IKEv2 Optional Child SA&TS Payloads
-docname: draft-kampati-ipsecme-ikev2-sa-ts-payloads-opt-08
+docname: draft-kampati-ipsecme-ikev2-sa-ts-payloads-opt-latest
 category: std
 
 ipr: trust200902
@@ -67,6 +67,10 @@ normative:
   RFC7296:
 
 informative:
+
+venue:
+  mail: ipsec@ietf.org
+  github: mcr/ipsecme-ikev2-sa-ts-payloads.git
 
 
 
