@@ -92,11 +92,11 @@ The Internet Key Exchange protocol version 2 (IKEv2) [RFC7296] is used to negoti
 Cryptographic key material for these SAs have a limited lifetime before it needs to be refreshed, a process referred to as "rekeying".
 IKEv2 uses the CREATE\_CHILD\_SA exchange to rekey either the IKE SA or the Child SAs.
 
-When rekeying, a full set of previously negotiated parameters are exchanged.
-However, most of these parameters will be the same, and some of these parameters MUST be the same.
+When rekeying, a full set of negotiation parameters are exchanged.
+However, most of these parameters will be the same as before, and some of these parameters MUST not change.
 
 For example, the Traffic Selector (TS) negotiated for the new Child SA MUST cover the Traffic Selectors negotiated for the old Child SA.
-And in practically all cases, a new Child SA would not need to cover more Traffic Selectors.
+And in practically all cases, a new Child SA does not need to cover a wider set of Traffic.
 In the rare case where this would be needed, either a standard rekey could be used or a new Child SA could be negotiated followed by a deletion of the replaced Child SA.
 
 Similarly, IKEv2 states that the cryptographic parameters negotiated for rekeying SHOULD NOT be different.
@@ -104,14 +104,14 @@ This means that the security properties of the IKE or Child SA in practise do no
 
 This document specifies a method to omit these parameters and replace them with a single Notify Message declaring that all these parameters are identical to the originally negotiated parameters.
 
-Large scale IKEv2 gateways such as Evolved Packet Data Gateway (ePDG) in 4G networks or Centralized Radio Access Network (cRAN/Cloud) gateways in 5G networks typically support more than 100000 IKE/IPSec connections.
+Large scale IKEv2 gateways such as Evolved Packet Data Gateway (ePDG) in 4G networks or Centralized Radio Access Network (cRAN/Cloud) gateways in 5G networks typically support more than 100,000 IKE/IPsec connections.
 At any point in time, there will be hundreds or thousands of IKE SAs and Child SAs that are being rekeyed.
 This takes a large amount of bandwidth and CPU power and any protocol simplification or bandwidth reducing would result in a significant resource saving.
 
 For Internet of Things (IoT) devices which utilize low power consumption technology, reducing the size of the CREATE\_CHILD\_SA exchange for rekeying reduces its power consumption, as sending bytes over the air is usually the most power consuming operation of such a device.
 Reducing the CPU operations required to verify the rekey exchanges parameters will also save power and extend the lifetime for these devices.
 
-When using identical parameters for the IKE SA or Child SA rekey, the SA and TS payloads can be  omitted according to the optimization defined in this document.
+When using identical parameters for the IKE SA or Child SA rekey, the SA and TS payloads can be  omitted thanks to the optimization defined in this document.
 For an IKE SA rekey, instead of the (large) SA payload, only a Key Exchange (KE) payload and a new
 Notify Type payload with the new SPI are required.
 For a Child SA payload, instead of the SA or TS payloads, only an optional nonce payload (when using PFS) and a new Notify Type payload with the new SPI are needed.
@@ -126,11 +126,18 @@ This makes the rekey exchange packets much smaller and the peers do not need to 
 # Negotiation of Support for OPTIMIZED REKEY
 
 To indicate support for the optimized rekey negotiation, the initiator includes the OPTIMIZED\_REKEY\_SUPPORTED notify payload in the IKE\_AUTH exchange request.
+During this initial key request, the entire SA and TA payloads are included as normal.
 A responder that supports the optimized rekey exchange includes the OPTIMIZED\_REKEY\_SUPPORTED notify payload in its response.
 Note that the notify indicates support for optimized rekey for both IKE and Child SAs.
 
+A responder that does not support the optimized rekey exchange processes the SA and TA payloads as normal, and does not include the new Notify.
+As per regular IKEv2 processing, a responder that does not recognize this new Notify, MUST ignore the notify.
+Responders may have been administratively configured with the optimization turned off for local reasons.
+The absense of the Notify indicates to the initiator that the optimization is not available, and normal, full rekey should be done.
+
 When a peer wishes to rekey an IKE SA or Child SA, it MAY use the optimized rekey method during the CREATE\_CHILD\_SA exchange.
-If both peers have exchanged OPTIMIZED\_REKEY\_SUPPORTED notifies, peers SHOULD use the optimized rekey method for rekeys but MUST accept either regular or optimized rekey requests.
+If both peers have exchanged OPTIMIZED\_REKEY\_SUPPORTED notifies, peers SHOULD use the optimized rekey method for rekeys.
+Non-optimized, regular rekey requests MUST always be accepted.
 
 The IKE\_AUTH message exchange in this case is shown below:
 
@@ -144,9 +151,6 @@ HDR, SK {IDi, [CERT,] [CERTREQ,]
                                     SAr2, TSi, TSr,
                                     N(OPTIMIZED_REKEY_SUPPORTED)}
 ~~~~
-
-If the responder does not support this extension, as per regular IKEv2 processing, it MUST ignore the unknown Notify payload.
-The initiator will notice the lack of the OPTIMIZED\_REKEY\_SUPPORTED Notify in the reply and thus know it cannot use the optimized rekey method.
 
 # Optimized Rekey of the IKE SA
 
