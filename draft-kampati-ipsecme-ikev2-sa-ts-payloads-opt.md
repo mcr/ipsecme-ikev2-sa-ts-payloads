@@ -217,7 +217,7 @@ The OPTIMIZED\_REKEY\_SUPPORTED Notify Message type notification is used by the 
 
 * Protocol ID (1 octet) - MUST be 0.
 * SPI Size (1 octet) - MUST be 0, meaning no SPI is present.
-* Notify Message Type (2 octets) - MUST be set to the value [TBD1].
+* Notify Message Type (2 octets) - MUST be set to the value `TBD1`.
 
 This Notify Message type contains no data.
 
@@ -246,7 +246,7 @@ For Child SAs, this field MUST contain either (2) to indicate AH or (3) to indic
 
 * SPI Size (1 octet) - MUST be 8 when rekeying an IKE SA. MUST be 4 when rekeying a Child SA.
 
-* Notify Message Type (2 octets) - MUST be set to the value [TBD2].
+* Notify Message Type (2 octets) - MUST be set to the value `TBD2`.
 
 * SPI (4 octets or 8 octets) - Security Parameter Index.
 The new SPI.
