@@ -60,6 +60,11 @@ author:
   code: "100053"
   city: Beijing
   country: China
+- ins: M. Richardson
+  name: Michael Richardson
+  org: Sandelman Software Works
+  email: mcr+ietf@sandelman.ca
+  role: editor
 
 normative:
   RFC2119:
