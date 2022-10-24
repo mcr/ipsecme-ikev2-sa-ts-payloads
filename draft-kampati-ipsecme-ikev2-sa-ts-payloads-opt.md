@@ -18,13 +18,9 @@ pi:
 author:
 - ins: S. Kampati
   name: Sandeep Kampati
-  org: Huawei Technologies
-  abbrev: Huawei
-  email: sandeepkampati@huawei.com
-  street: Divyashree Techno Park, Whitefield
-  code: '560066'
-  city: Bangalore
-  region: Karnataka
+  org: Microsoft
+  abbrev: Microsoft
+  email: skampati@microsoft.com
   country: India
 - ins: W. Pan
   name: Wei Pan
@@ -60,11 +56,6 @@ author:
   code: "100053"
   city: Beijing
   country: China
-- ins: M. Richardson
-  name: Michael Richardson
-  org: Sandelman Software Works
-  email: mcr+ietf@sandelman.ca
-  role: editor
 
 normative:
   RFC2119:
@@ -88,12 +79,12 @@ Reducing size and complexity of IKEv2 exchanges is especially useful for low pow
 
 # Introduction
 
-The Internet Key Exchange protocol version 2 (IKEv2) [RFC7296] is used to negotiate Security Association (SA) parameters for the IKE SA and  the Child SAs.
+The Internet Key Exchange protocol version 2 (IKEv2) [RFC7296] is used to negotiate Security Association (SA) parameters for the IKE SA and the Child SAs.
 Cryptographic key material for these SAs have a limited lifetime before it needs to be refreshed, a process referred to as "rekeying".
 IKEv2 uses the CREATE\_CHILD\_SA exchange to rekey either the IKE SA or the Child SAs.
 
 When rekeying, a full set of negotiation parameters are exchanged.
-However, most of these parameters will be the same as before, and some of these parameters MUST not change.
+However, most of these parameters will be the same as before, and some of these parameters MUST NOT change.
 
 For example, the Traffic Selector (TS) negotiated for the new Child SA MUST cover the Traffic Selectors negotiated for the old Child SA.
 And in practically all cases, a new Child SA does not need to cover a wider set of Traffic.
@@ -126,11 +117,11 @@ This makes the rekey exchange packets much smaller and the peers do not need to 
 # Negotiation of Support for OPTIMIZED REKEY
 
 To indicate support for the optimized rekey negotiation, the initiator includes the OPTIMIZED\_REKEY\_SUPPORTED notify payload in the IKE\_AUTH exchange request.
-During this initial key request, the entire SA and TA payloads are included as normal.
+During this initial key request, the entire SA and TS payloads are included as normal.
 A responder that supports the optimized rekey exchange includes the OPTIMIZED\_REKEY\_SUPPORTED notify payload in its response.
 Note that the notify indicates support for optimized rekey for both IKE and Child SAs.
 
-A responder that does not support the optimized rekey exchange processes the SA and TA payloads as normal, and does not include the new Notify.
+A responder that does not support the optimized rekey exchange processes the SA and TS payloads as normal, and does not include the new Notify.
 As per regular IKEv2 processing, a responder that does not recognize this new Notify, MUST ignore the notify.
 Responders may have been administratively configured with the optimization turned off for local reasons.
 The absense of the Notify indicates to the initiator that the optimization is not available, and normal, full rekey should be done.
@@ -268,7 +259,7 @@ OPTIMIZED_REKEY                          TBD2
 # Operational Considerations
 
 Some implementations allow sending rekey messages with a different set of Traffic Selectors or cryptographic parameters in response to a configuration update.
-IKEv2 states this SHOULD NOT be done.
+IKEv2 [RFC7296] states this SHOULD NOT be done.
 Whether or not optimized rekeying is used, a configuration change that changes the Traffic Selectors or cryptographic parameters MUST NOT use the optimized rekey method.
 It SHOULD also not use a regular rekey method but instead start an entire new IKE and Child SA negotiation with the new parameters.
 
@@ -279,7 +270,7 @@ In that sense, this optimization enhances the security of the rekey process by r
 
 # Acknowledgments
 
-Special thanks to Valery Smyslov and Antony Antony.
+Special thanks go to Valery Smyslov and Antony Antony.
 
 --- back
 
